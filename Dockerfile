@@ -9,15 +9,23 @@ ENV PATH=/root/.local/bin:$PATH
 ## Copy AWS config, credentials should be automatically pulled from IAM role associated with drone instance
 COPY config/config /root/.aws/config
 
+## Copy wait_matrix_test script
+ADD wait_for_tests_matrix.sh /
+
+## make wait_for_tests_matrix executable
+RUN chmod +x /wait_for_tests_matrix.sh
+
 #install the aws prereqs
 RUN apt-get update \
     && apt-get install -y \
     python \
-    python-pip 
+    python-pip \
+    jq \
+    curl
 
 #install aws cli
 RUN pip install awscli --upgrade \
-    && echo 'export PATH=/root/.local/bin:$PATH' >> /root/.bash_profile 
+    && echo 'export PATH=/root/.local/bin:$PATH' >> /root/.bash_profile
 
 #install packages for docker
 RUN set -x \
@@ -29,5 +37,5 @@ RUN set -x \
     && apt-get -q -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install docker-engine \
     && apt-get clean \
     && rm -Rf /var/lib/apt/lists/* 2>/dev/null \
-    && service docker start 
+    && service docker start
 
